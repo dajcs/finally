@@ -2,20 +2,32 @@
 
 A visually stunning, AI-powered trading workstation with live market data, simulated portfolio trading, and an LLM chat assistant that can analyze positions and execute trades on your behalf.
 
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) (required — runs the full stack)
+- `uv` and `npm` only needed for local development (see below)
+
 ## Quick Start
 
 ```bash
 cp .env.example .env
 # Edit .env — add your OPENROUTER_API_KEY (required for AI chat)
 
+docker build -t finally .
+docker run -v finally-data:/app/db -p 8000:8000 --env-file .env finally
+```
+
+Open [http://localhost:8000](http://localhost:8000). No login required.
+
+Convenience scripts are also available in `scripts/` (wrap the commands above):
+
+```bash
 # macOS / Linux
 ./scripts/start_mac.sh
 
 # Windows PowerShell
 ./scripts/start_windows.ps1
 ```
-
-Open [http://localhost:8000](http://localhost:8000). No login required.
 
 ## What You Get
 
