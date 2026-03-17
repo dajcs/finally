@@ -78,3 +78,27 @@ cd backend && uv run pytest
 # E2E tests (requires Docker)
 cd test && docker-compose -f docker-compose.test.yml up
 ```
+
+---
+
+# Claude Code Sandbox
+
+❯ /sandbox
+
+---
+  Sandbox:  Dependencies
+---
+
+-  bubblewrap (bwrap): installed
+
+-  socat: not installed
+    - `apt install socat`
+
+-  seccomp filter: not installed (required to block unix domain sockets)
+    - `npm install -g @anthropic-ai/sandbox-runtime`
+    - or copy `vendor/seccomp/*` from sandbox-runtime and set
+      `sandbox.seccomp.bpfPath` and `applyPath` in `settings.json`
+
+-  right and left arrows are not working while in `/sandbox` (bug in bubblewrap when using `--unshare-pid`)
+    - workaround: use `CTRL + A` and `CTRL + E` to move to the beginning and end of the line, respectively
+
