@@ -207,7 +207,7 @@ All tables include a `user_id` column defaulting to `"default"`. This is hardcod
 - `ticker` TEXT
 - `added_at` TEXT (ISO timestamp)
 - UNIQUE constraint on `(user_id, ticker)`
-- Ordered by `added_at` ascending (tickers appear in the order they were added)
+- Ordered by `added_at, ticker` ascending (tickers appear in the order they were added; ticker is the tie-breaker for simultaneous bulk inserts)
 
 **positions** — Current holdings (one row per ticker per user)
 - `id` TEXT PRIMARY KEY (UUID)
