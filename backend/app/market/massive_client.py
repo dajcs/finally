@@ -6,7 +6,6 @@ import asyncio
 import logging
 
 from massive import RESTClient
-from massive.rest.models import SnapshotMarketType
 
 from .cache import PriceCache
 from .interface import MarketDataSource
@@ -87,7 +86,7 @@ class MassiveDataSource(MarketDataSource):
             await self._poll_once()
 
     async def _poll_once(self) -> None:
-        """Execute one poll cycle: fetch snapshots, update cache."""
+        """Execute one poll cycle: fetch snapshots via list_universal_snapshots, update cache."""
         if not self._tickers or not self._client:
             return
 
@@ -122,7 +121,7 @@ class MassiveDataSource(MarketDataSource):
 
     def _fetch_snapshots(self) -> list:
         """Synchronous call to the Massive REST API. Runs in a thread."""
-        return self._client.get_snapshot_all(
-            market_type=SnapshotMarketType.STOCKS,
-            tickers=self._tickers,
-        )
+        return list(self._client.list_universal_snapshots(
+            type="stocks",
+            ticker_any_of=self._tickers,
+        ))

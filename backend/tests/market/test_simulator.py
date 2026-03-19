@@ -129,3 +129,16 @@ class TestGBMSimulator:
         if '.' in price_str:
             decimal_part = price_str.split('.')[1]
             assert len(decimal_part) <= 2
+
+    def test_cholesky_with_all_default_tickers(self):
+        """Test that Cholesky decomposition succeeds for the full default watchlist."""
+        from app.market.seed_prices import SEED_PRICES
+
+        tickers = list(SEED_PRICES.keys())
+        sim = GBMSimulator(tickers=tickers)
+        assert sim._cholesky is not None
+        assert sim._cholesky.shape == (len(tickers), len(tickers))
+        # Verify one full step produces prices for all tickers
+        result = sim.step()
+        assert set(result.keys()) == set(tickers)
+        assert all(p > 0 for p in result.values())
