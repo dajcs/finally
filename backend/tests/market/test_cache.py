@@ -101,3 +101,37 @@ class TestPriceCache:
         cache = PriceCache()
         update = cache.update("AAPL", 190.12345)
         assert update.price == 190.12
+
+    def test_zero_timestamp_preserved(self):
+        """Test that timestamp=0.0 is preserved (not replaced by current time)."""
+        cache = PriceCache()
+        update = cache.update("AAPL", 190.50, timestamp=0.0)
+        assert update.timestamp == 0.0
+
+    def test_concurrent_writes(self):
+        """Test thread-safety under concurrent writes."""
+        import threading
+
+        cache = PriceCache()
+        errors = []
+
+        def write_ticker(ticker: str, count: int) -> None:
+            try:
+                for i in range(count):
+                    cache.update(ticker, float(i + 1))
+            except Exception as e:
+                errors.append(e)
+
+        threads = [
+            threading.Thread(target=write_ticker, args=(f"T{i}", 100))
+            for i in range(5)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert not errors
+        for i in range(5):
+            assert cache.get(f"T{i}") is not None
+        assert cache.version == 500  # 5 threads × 100 writes each
