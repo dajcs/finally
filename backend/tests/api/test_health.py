@@ -1,0 +1,9 @@
+"""Tests for health endpoint."""
+
+
+async def test_health_returns_ok(client):
+    resp = await client.get("/api/health")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ok"
+    assert "timestamp" in data
