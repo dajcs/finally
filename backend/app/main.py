@@ -49,15 +49,23 @@ async def lifespan(app: FastAPI):
     # Start market data with watchlist tickers
     wl = await get_watchlist()
     tickers = [entry["ticker"] for entry in wl]
-    await source.start(tickers)
-    logger.info("Market data source started with %d tickers", len(tickers))
+    try:
+        await source.start(tickers)
+        logger.info("Market data source started with %d tickers", len(tickers))
+    except Exception:
+        logger.exception("Failed to start market data source — prices will be unavailable")
 
     # Start snapshot background task
     snapshot_task = asyncio.create_task(_snapshot_loop(price_cache))
 
-    # Record initial snapshot
+    # Record initial snapshot (full portfolio value, not just cash)
     cash = await get_cash_balance()
-    await insert_snapshot(round(cash, 2))
+    positions = await get_positions()
+    total_value = cash
+    for pos in positions:
+        price = price_cache.get_price(pos["ticker"]) or pos["avg_cost"]
+        total_value += price * pos["quantity"]
+    await insert_snapshot(round(total_value, 2))
 
     yield
 

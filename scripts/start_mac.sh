@@ -44,7 +44,10 @@ echo ""
 echo "FinAlly is running at http://localhost:$PORT"
 echo ""
 
-# Open browser if on macOS
-if command -v open &>/dev/null; then
+# Open browser
+if grep -qi microsoft /proc/version 2>/dev/null; then
+    # WSL: open in Windows default browser
+    powershell.exe /c start "http://localhost:$PORT" 2>/dev/null || true
+elif [[ "$(uname)" == "Darwin" ]]; then
     open "http://localhost:$PORT"
 fi

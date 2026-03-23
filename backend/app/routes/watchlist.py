@@ -1,9 +1,18 @@
 """Watchlist API endpoints."""
 
+import re
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from app.db import add_to_watchlist, get_watchlist, remove_from_watchlist
+
+_TICKER_RE = re.compile(r"^[A-Z]{1,5}[0-9]{0,2}$")
+
+
+def _validate_ticker(ticker: str) -> None:
+    if not _TICKER_RE.match(ticker):
+        raise HTTPException(status_code=400, detail=f"Invalid ticker symbol: {ticker}")
 
 router = APIRouter(prefix="/api/watchlist", tags=["watchlist"])
 
@@ -38,6 +47,7 @@ async def list_watchlist(request: Request):
 async def add_ticker(body: AddTickerRequest, request: Request):
     """Add a ticker to the watchlist and market data source."""
     ticker = body.ticker.upper()
+    _validate_ticker(ticker)
     source = request.app.state.market_source
 
     try:
@@ -54,6 +64,7 @@ async def add_ticker(body: AddTickerRequest, request: Request):
 async def remove_ticker(ticker: str, request: Request):
     """Remove a ticker from the watchlist and market data source."""
     ticker = ticker.upper()
+    _validate_ticker(ticker)
     source = request.app.state.market_source
     cache = request.app.state.price_cache
 

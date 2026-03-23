@@ -1,7 +1,11 @@
 """Portfolio API endpoints."""
 
+import re
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+
+_TICKER_RE = re.compile(r"^[A-Z]{1,5}[0-9]{0,2}$")
 
 from app.db import (
     delete_position,
@@ -74,6 +78,8 @@ async def execute_trade(trade: TradeRequest, request: Request):
     side = trade.side.lower()
     quantity = trade.quantity
 
+    if not _TICKER_RE.match(ticker):
+        raise HTTPException(status_code=400, detail=f"Invalid ticker symbol: {ticker}")
     if side not in ("buy", "sell"):
         raise HTTPException(status_code=400, detail="side must be 'buy' or 'sell'")
     if quantity <= 0:
@@ -83,18 +89,17 @@ async def execute_trade(trade: TradeRequest, request: Request):
     if current_price is None:
         raise HTTPException(status_code=400, detail=f"No price available for {ticker}")
 
-    cash = await get_cash_balance()
-
     if side == "buy":
         cost = current_price * quantity
+        cash = await get_cash_balance()
         if cost > cash:
             raise HTTPException(
                 status_code=400,
                 detail=f"Insufficient cash. Need ${cost:.2f}, have ${cash:.2f}",
             )
 
-        # Update cash
-        await update_cash_balance(cash - cost)
+        # Update cash (atomic delta)
+        await update_cash_balance(-cost)
 
         # Update position
         existing = await get_position(ticker)
@@ -116,7 +121,7 @@ async def execute_trade(trade: TradeRequest, request: Request):
             )
 
         proceeds = current_price * quantity
-        await update_cash_balance(cash + proceeds)
+        await update_cash_balance(proceeds)
 
         remaining = existing["quantity"] - quantity
         if remaining > 0:

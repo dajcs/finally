@@ -31,15 +31,20 @@ async def get_cash_balance(user_id: str = DEFAULT_USER_ID) -> float:
         await db.close()
 
 
-async def update_cash_balance(amount: float, user_id: str = DEFAULT_USER_ID) -> float:
-    """Set the user's cash balance to the given amount. Returns the new balance."""
+async def update_cash_balance(delta: float, user_id: str = DEFAULT_USER_ID) -> float:
+    """Atomically adjust the user's cash balance by delta. Returns the new balance."""
     db = await get_connection()
     try:
         await db.execute(
-            "UPDATE users_profile SET cash_balance = ? WHERE id = ?", (amount, user_id)
+            "UPDATE users_profile SET cash_balance = cash_balance + ? WHERE id = ?",
+            (delta, user_id),
         )
         await db.commit()
-        return amount
+        cursor = await db.execute(
+            "SELECT cash_balance FROM users_profile WHERE id = ?", (user_id,)
+        )
+        row = await cursor.fetchone()
+        return row["cash_balance"] if row else 0.0
     finally:
         await db.close()
 

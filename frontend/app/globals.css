@@ -24,25 +24,6 @@ body {
   font-family: var(--font-mono);
 }
 
-/* Price flash animations */
-@keyframes flash-green {
-  0% { background-color: rgba(38, 166, 65, 0.3); }
-  100% { background-color: transparent; }
-}
-
-@keyframes flash-red {
-  0% { background-color: rgba(248, 81, 73, 0.3); }
-  100% { background-color: transparent; }
-}
-
-.price-flash-up {
-  animation: flash-green 500ms ease-out;
-}
-
-.price-flash-down {
-  animation: flash-red 500ms ease-out;
-}
-
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

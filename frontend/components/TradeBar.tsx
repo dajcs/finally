@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { executeTrade } from "@/lib/api";
 import type { PriceMap } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
@@ -8,10 +8,15 @@ import { formatPrice } from "@/lib/format";
 interface TradeBarProps {
   prices: PriceMap;
   onTradeExecuted: () => void;
+  selectedTicker?: string | null;
 }
 
-export default function TradeBar({ prices, onTradeExecuted }: TradeBarProps) {
+export default function TradeBar({ prices, onTradeExecuted, selectedTicker }: TradeBarProps) {
   const [ticker, setTicker] = useState("");
+
+  useEffect(() => {
+    if (selectedTicker) setTicker(selectedTicker);
+  }, [selectedTicker]);
   const [quantity, setQuantity] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);

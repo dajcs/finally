@@ -62,12 +62,12 @@ class TestCashBalance:
         assert balance == 10000.0
 
     async def test_update_balance(self):
-        await update_cash_balance(5000.0)
+        await update_cash_balance(-5000.0)  # 10000 - 5000 = 5000
         balance = await get_cash_balance()
         assert balance == 5000.0
 
     async def test_update_balance_to_zero(self):
-        await update_cash_balance(0.0)
+        await update_cash_balance(-10000.0)  # 10000 - 10000 = 0
         balance = await get_cash_balance()
         assert balance == 0.0
 

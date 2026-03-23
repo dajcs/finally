@@ -38,7 +38,7 @@ async def get_connection() -> aiosqlite.Connection:
 
 
 async def init_db() -> None:
-    """Create tables and seed default data if needed."""
+    """Create tables, seed default data if needed, and clean up anomalous snapshots."""
     db = await get_connection()
     try:
         await db.executescript(SCHEMA_SQL)
@@ -66,5 +66,18 @@ async def init_db() -> None:
                 )
 
             await db.commit()
+
+        # Remove cash-only startup snapshots (a past bug recorded cash alone, not cash+positions).
+        # Delete snapshots below 80% of median when we have enough history to judge.
+        await db.execute("""
+            DELETE FROM portfolio_snapshots
+            WHERE (SELECT COUNT(*) FROM portfolio_snapshots) > 5
+              AND total_value < 0.80 * (
+                  SELECT total_value FROM portfolio_snapshots
+                  ORDER BY total_value
+                  LIMIT 1 OFFSET (SELECT COUNT(*) / 2 FROM portfolio_snapshots)
+              )
+        """)
+        await db.commit()
     finally:
         await db.close()

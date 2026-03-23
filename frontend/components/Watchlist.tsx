@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import type { PriceMap, WatchlistItem } from "@/lib/types";
 import { formatPrice, formatPercent } from "@/lib/format";
 import { addToWatchlist, removeFromWatchlist } from "@/lib/api";
@@ -24,26 +24,6 @@ export default function Watchlist({
   onRefresh,
 }: WatchlistProps) {
   const [addInput, setAddInput] = useState("");
-  const prevPricesRef = useRef<Record<string, number>>({});
-  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
-
-  // Apply flash CSS classes directly to DOM elements
-  useEffect(() => {
-    for (const [ticker, update] of Object.entries(prices)) {
-      const prev = prevPricesRef.current[ticker];
-      if (prev !== undefined && prev !== update.price) {
-        const row = rowRefs.current[ticker];
-        if (row) {
-          const cls = update.price > prev ? "price-flash-up" : "price-flash-down";
-          row.classList.remove("price-flash-up", "price-flash-down");
-          // Force reflow to restart animation
-          void row.offsetWidth;
-          row.classList.add(cls);
-        }
-      }
-      prevPricesRef.current[ticker] = update.price;
-    }
-  }, [prices]);
 
   const handleAdd = useCallback(async () => {
     const ticker = addInput.trim().toUpperCase();
@@ -105,10 +85,16 @@ export default function Watchlist({
               const direction = update?.direction ?? item.direction ?? "flat";
               const isSelected = selectedTicker === item.ticker;
 
+              const chgBg =
+                direction === "up"
+                  ? "rgba(26,92,43,0.5)"
+                  : direction === "down"
+                  ? "rgba(110,43,40,0.5)"
+                  : "transparent";
+
               return (
                 <tr
                   key={item.ticker}
-                  ref={(el) => { rowRefs.current[item.ticker] = el; }}
                   onClick={() => onSelectTicker(item.ticker)}
                   className={`cursor-pointer border-b border-border/50 hover:bg-bg-hover transition-colors ${
                     isSelected ? "bg-bg-hover" : ""
@@ -117,17 +103,12 @@ export default function Watchlist({
                   <td className="px-3 py-1.5 font-bold text-text-primary">
                     {item.ticker}
                   </td>
-                  <td className="text-right px-2 py-1.5 tabular-nums">
+                  <td className="text-right px-2 py-1.5 tabular-nums text-text-primary">
                     {formatPrice(price)}
                   </td>
                   <td
-                    className={`text-right px-2 py-1.5 tabular-nums ${
-                      direction === "up"
-                        ? "text-gain"
-                        : direction === "down"
-                        ? "text-loss"
-                        : "text-text-muted"
-                    }`}
+                    className="text-right px-2 py-1.5 tabular-nums text-white/90 font-medium"
+                    style={{ backgroundColor: chgBg }}
                   >
                     {formatPercent(changePct)}
                   </td>

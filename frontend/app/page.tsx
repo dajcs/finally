@@ -84,7 +84,7 @@ export default function Home() {
               onRefresh={refreshWatchlist}
             />
           </div>
-          <TradeBar prices={prices} onTradeExecuted={refreshAll} />
+          <TradeBar prices={prices} onTradeExecuted={refreshAll} selectedTicker={selectedTicker} />
         </div>
 
         {/* Center: Charts + Positions */}
@@ -92,7 +92,7 @@ export default function Home() {
           {/* Top row: Price Chart + Portfolio Heatmap */}
           <div className="flex-1 flex min-h-0">
             <div className="flex-[2] border-r border-border min-w-0">
-              <PriceChart ticker={selectedTicker} getHistory={getHistory} />
+              <PriceChart ticker={selectedTicker} getHistory={getHistory} prices={prices} />
             </div>
             <div className="flex-1 min-w-0">
               <PortfolioHeatmap positions={portfolio?.positions ?? []} />

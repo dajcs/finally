@@ -143,10 +143,9 @@ async def _execute_actions(
             trade_results.append({"ticker": ticker, "side": side, "error": f"No price available for {ticker}"})
             continue
 
-        cash = await get_cash_balance()
-
         if side == "buy":
             cost = current_price * quantity
+            cash = await get_cash_balance()
             if cost > cash:
                 trade_results.append({
                     "ticker": ticker, "side": "buy",
@@ -154,7 +153,7 @@ async def _execute_actions(
                 })
                 continue
 
-            await update_cash_balance(cash - cost)
+            await update_cash_balance(-cost)
             existing = await get_position(ticker)
             if existing:
                 total_qty = existing["quantity"] + quantity
@@ -175,7 +174,7 @@ async def _execute_actions(
                 continue
 
             proceeds = current_price * quantity
-            await update_cash_balance(cash + proceeds)
+            await update_cash_balance(proceeds)
             remaining = existing["quantity"] - quantity
             if remaining > 0:
                 await upsert_position(ticker, remaining, existing["avg_cost"])
@@ -244,6 +243,7 @@ async def chat_with_llm(user_message: str, price_cache: PriceCache) -> dict:
             extra_body=EXTRA_BODY,
         )
         content = response.choices[0].message.content
+        logger.debug("LLM raw response: %s", content)
         llm_response = LlmResponse.model_validate_json(content)
     except Exception:
         logger.exception("LLM call failed")

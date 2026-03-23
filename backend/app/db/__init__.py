@@ -6,7 +6,7 @@ Public API:
     set_db_path          - Override DB file path (for testing)
 
     get_cash_balance     - Get user's cash balance
-    update_cash_balance  - Set user's cash balance
+    update_cash_balance  - Atomically adjust cash balance by delta
 
     get_watchlist        - List watchlist tickers
     add_to_watchlist     - Add a ticker
